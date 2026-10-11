@@ -1,0 +1,79 @@
+# Example Docker Compose deployment for Sure Companion sidecar
+# Demonstrates running sure-companion alongside official Sure web and PostgreSQL
+services:
+  sure-companion:
+    # Use prebuilt community image or build locally from source:
+    # image: ghcr.io/we-promise/sure-companion:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sure-companion
+    restart: unless-stopped
+    ports:
+      - "8045:8045"
+    environment:
+      - NODE_ENV=production
+      - PORT=8045
+      - HOST=0.0.0.0
+      - CONFIG_DIR=/config
+      # Internal URL pointing to Sure Rails backend on the shared docker network
+      - SURE_BASE_URL=http://sure_web:3000
+      # Personal access token generated in Sure (Settings -> API Tokens)
+      - SURE_API_TOKEN=your_sure_api_token_here
+      # Optional environment overrides (can also be configured via Web UI at :8045)
+      # - SYNC_ENABLED=true
+      # - SYNC_INTERVAL_MINUTES=60
+      # - SYNC_LOOKBACK_DAYS=14
+      # - RECEIPTS_PROVIDER=disabled # options: gmail, imap, local_folder, disabled
+      # - CATEGORIZATION_PROVIDER=rules_only # options: rules_only, ollama, openai, disabled
+    volumes:
+      # Persistent state directory: contains config.json, companion_state.db, and receipts_drop/
+      - ./config:/config
+    depends_on:
+      sure_web:
+        condition: service_started
+    networks:
+      - sure-network
+
+  # Official Sure Personal Finance web application
+  sure_web:
+    image: ghcr.io/we-promise/sure:stable
+    container_name: sure_web
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgres://sure:sure_secure_password@postgres:5432/sure_production
+      - SECRET_KEY_BASE=generate_with_openssl_rand_hex_64_character_secret_key
+      - PORT=3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - sure-network
+
+  # Database for Sure
+  postgres:
+    image: postgres:16-alpine
+    container_name: sure_db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=sure
+      - POSTGRES_PASSWORD=sure_secure_password
+      - POSTGRES_DB=sure_production
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sure -d sure_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - sure-network
+
+networks:
+  sure-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
