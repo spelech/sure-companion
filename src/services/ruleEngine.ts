@@ -16,16 +16,16 @@ export const CANONICAL_CATEGORIES = [
   'Dining Out: Restaurants & Takeout',
   'Dining Out: Fast Food & Coffee',
   'Dining Out: Workplace Meals',
-  'Education & Childcare (Goddard School)',
+  'Education & Childcare',
   'Medical & Healthcare',
   'Transportation: Gasoline & Fuel',
   'Transportation: Tolls & Transit',
   'Transportation: Auto Insurance & Care',
-  'Debt Service: Vehicle Financing (Acura RDX)',
+  'Debt Service: Vehicle Financing',
   'Entertainment: Streaming & Media',
   'Entertainment: Hobbies & Recreation',
   'Technology: Software & Subscriptions',
-  'Pets & Pet Care (Riley)',
+  'Pets & Pet Care',
   'Shopping: General Retail & Household',
   'Shopping: Clothing & Apparel',
   'Shopping: Electronics & Technology',
@@ -33,7 +33,7 @@ export const CANONICAL_CATEGORIES = [
   'Travel, Lodging & Vacation',
   'Legal, Professional & Taxes',
   'Transfer: Internal Liquidity',
-  'Transfer: Interspousal (Laura Pelech)',
+  'Transfer: Interspousal',
   'Transfer: Family Reimbursement',
   'Transfer: Peer-to-Peer & Personal Reimbursements',
   'Investment: Brokerage & Capital Accumulation',
@@ -117,10 +117,10 @@ export const CATEGORY_NORMALIZATION_MAP: Record<string, CanonicalCategory> = {
   'rent': 'Housing: Rent & Temporary Housing',
 
   // Education & Health
-  'education & childcare (goddard school)': 'Education & Childcare (Goddard School)',
-  'education & childcare': 'Education & Childcare (Goddard School)',
-  'childcare': 'Education & Childcare (Goddard School)',
-  'daycare': 'Education & Childcare (Goddard School)',
+  'education & childcare': 'Education & Childcare',
+  'childcare': 'Education & Childcare',
+  'daycare': 'Education & Childcare',
+  'preschool': 'Education & Childcare',
   'medical & healthcare': 'Medical & Healthcare',
   'healthcare & medical': 'Medical & Healthcare',
   'medical': 'Medical & Healthcare',
@@ -141,9 +141,9 @@ export const CATEGORY_NORMALIZATION_MAP: Record<string, CanonicalCategory> = {
   'insurance': 'Transportation: Auto Insurance & Care',
   'auto insurance': 'Transportation: Auto Insurance & Care',
   'auto care': 'Transportation: Auto Insurance & Care',
-  'debt service: vehicle financing (acura rdx)': 'Debt Service: Vehicle Financing (Acura RDX)',
-  'vehicle financing': 'Debt Service: Vehicle Financing (Acura RDX)',
-  'auto loan': 'Debt Service: Vehicle Financing (Acura RDX)',
+  'debt service: vehicle financing': 'Debt Service: Vehicle Financing',
+  'vehicle financing': 'Debt Service: Vehicle Financing',
+  'auto loan': 'Debt Service: Vehicle Financing',
 
   // Entertainment & Tech
   'entertainment: streaming & media': 'Entertainment: Streaming & Media',
@@ -159,10 +159,9 @@ export const CATEGORY_NORMALIZATION_MAP: Record<string, CanonicalCategory> = {
   'cloud storage': 'Technology: Software & Subscriptions',
 
   // Pets & Personal Care & Shopping
-  'pets & pet care (riley)': 'Pets & Pet Care (Riley)',
-  'pet: riley': 'Pets & Pet Care (Riley)',
-  'pets': 'Pets & Pet Care (Riley)',
-  'pet care': 'Pets & Pet Care (Riley)',
+  'pets & pet care': 'Pets & Pet Care',
+  'pets': 'Pets & Pet Care',
+  'pet care': 'Pets & Pet Care',
   'shopping: general retail & household': 'Shopping: General Retail & Household',
   'shopping': 'Shopping: General Retail & Household',
   'retail': 'Shopping: General Retail & Household',
@@ -186,8 +185,8 @@ export const CATEGORY_NORMALIZATION_MAP: Record<string, CanonicalCategory> = {
   'transfer: internal': 'Transfer: Internal Liquidity',
   'credit card payment': 'Transfer: Internal Liquidity',
   'internal transfer': 'Transfer: Internal Liquidity',
-  'transfer: interspousal (laura pelech)': 'Transfer: Interspousal (Laura Pelech)',
-  'interspousal': 'Transfer: Interspousal (Laura Pelech)',
+  'transfer: interspousal': 'Transfer: Interspousal',
+  'interspousal': 'Transfer: Interspousal',
   'transfer: family reimbursement': 'Transfer: Family Reimbursement',
   'family reimbursement': 'Transfer: Family Reimbursement',
   'transfer: peer-to-peer & personal reimbursements': 'Transfer: Peer-to-Peer & Personal Reimbursements',
@@ -273,7 +272,7 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'AT&T', rawPattern: 'AT&T|ATT\\*', cleanPattern: 'AT&T', matchField: 'dual', targetMerchant: 'AT&T', targetCategory: 'Utilities: Cell Phone', priority: 10 },
   { pattern: 'T-MOBILE', rawPattern: 'T-MOBILE|TMOBILE', cleanPattern: 'T-Mobile', matchField: 'dual', targetMerchant: 'T-Mobile', targetCategory: 'Utilities: Cell Phone', priority: 10 },
   { pattern: 'WASTE MGMT', rawPattern: 'WASTE MGMT|WASTE MANAGEMENT', cleanPattern: 'Waste Management', matchField: 'dual', targetMerchant: 'Waste Management', targetCategory: 'Utilities: Water & Waste', priority: 10 },
-  { pattern: 'VILLAGE WATER', rawPattern: 'VOSCHAUMBURG|VILLAGE OF.*WATER|WATER BILL', cleanPattern: 'Village Water', matchField: 'dual', targetCategory: 'Utilities: Water & Waste', priority: 10 },
+  { pattern: 'MUNICIPAL WATER', rawPattern: 'MUNICIPAL WATER|VILLAGE OF.*WATER|CITY WATER|WATER BILL', cleanPattern: 'Municipal Water', matchField: 'dual', targetCategory: 'Utilities: Water & Waste', priority: 10 },
 
   // 2. Groceries & Supermarkets
   { pattern: 'TRADER JOES', rawPattern: 'TRADER JOE|TRADER JOES', cleanPattern: "Trader Joe's", matchField: 'dual', targetMerchant: "Trader Joe's", targetCategory: 'Groceries & Supermarket', priority: 20 },
@@ -303,9 +302,9 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'GREAT AMERICAN BAGEL', rawPattern: 'GREAT AMERICAN BAGEL', cleanPattern: 'The Great American Bagel', matchField: 'dual', targetMerchant: 'The Great American Bagel', targetCategory: 'Dining Out: Fast Food & Coffee', priority: 25 },
 
   // 4. Dining Out: Workplace Meals
-  { pattern: 'ARAMARK', rawPattern: 'ARAMARK|ARAMARK NORTHROP', cleanPattern: 'Aramark Cafeteria', matchField: 'dual', targetMerchant: 'Aramark Cafeteria', targetCategory: 'Dining Out: Workplace Meals', priority: 5 },
+  { pattern: 'ARAMARK', rawPattern: 'ARAMARK|SODEXO|COMPASS GROUP|CANTEEN', cleanPattern: 'Aramark Cafeteria', matchField: 'dual', targetMerchant: 'Aramark Cafeteria', targetCategory: 'Dining Out: Workplace Meals', priority: 5 },
   { pattern: 'MARKET AT WORK', rawPattern: 'MARKET@WORK', cleanPattern: 'Market@Work', matchField: 'dual', targetMerchant: 'Market@Work', targetCategory: 'Dining Out: Workplace Meals', priority: 5 },
-  { pattern: 'AMK MCMASTER', rawPattern: 'AMK MCMASTER|AMK MCMASTER-CARR', cleanPattern: 'AMK McMaster-Carr Cafeteria', matchField: 'dual', targetCategory: 'Dining Out: Workplace Meals', priority: 5 },
+  { pattern: 'WORKPLACE CAFE', rawPattern: 'WORKPLACE CAFE|CORP CAFE|COMPANY CAFETERIA', cleanPattern: 'Company Cafeteria', matchField: 'dual', targetCategory: 'Dining Out: Workplace Meals', priority: 5 },
 
   // 5. Dining Out: Restaurants & Takeout
   { pattern: 'DOORDASH', rawPattern: 'DOORDASH', cleanPattern: 'DoorDash', matchField: 'dual', targetMerchant: 'DoorDash', targetCategory: 'Dining Out: Restaurants & Takeout', priority: 25 },
@@ -321,12 +320,11 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'WING SNOB', rawPattern: 'WING SNOB', cleanPattern: 'Wing Snob', matchField: 'dual', targetMerchant: 'Wing Snob', targetCategory: 'Dining Out: Restaurants & Takeout', priority: 25 },
 
   // 6. Education & Childcare
-  { pattern: 'GODDARD SCHOOL', rawPattern: 'GODDARD SCHO|THE GODDARD SCHOOL', cleanPattern: 'The Goddard School', matchField: 'dual', targetMerchant: 'The Goddard School', targetCategory: 'Education & Childcare (Goddard School)', priority: 10 },
-  { pattern: 'TUTOR TIME', rawPattern: 'TUTOR TIME', cleanPattern: 'Tutor Time', matchField: 'dual', targetCategory: 'Education & Childcare (Goddard School)', priority: 10 },
+  { pattern: 'DAYCARE', rawPattern: 'KINDERCARE|BRIGHT HORIZONS|GODDARD SCHOOL|TUTOR TIME|DAYCARE|PRESCHOOL|CHILDCARE', cleanPattern: 'Daycare & Preschool', matchField: 'dual', targetMerchant: 'Daycare & Preschool', targetCategory: 'Education & Childcare', priority: 10 },
 
   // 7. Medical & Healthcare
   { pattern: 'SCHWARTZ PEDIATRICS', rawPattern: 'SCHWARTZ PEDIATRICS', cleanPattern: 'Schwartz Pediatrics', matchField: 'dual', targetMerchant: 'Schwartz Pediatrics', targetCategory: 'Medical & Healthcare', priority: 15 },
-  { pattern: 'SCHAUMBURG DENTAL', rawPattern: 'SCHAUMBURG DENTAL', cleanPattern: 'Schaumburg Dental Studio', matchField: 'dual', targetMerchant: 'Schaumburg Dental Studio', targetCategory: 'Medical & Healthcare', priority: 15 },
+  { pattern: 'FAMILY DENTAL', rawPattern: 'DENTAL CARE|FAMILY DENTAL|ASPEN DENTAL', cleanPattern: 'Family Dental Care', matchField: 'dual', targetMerchant: 'Family Dental Care', targetCategory: 'Medical & Healthcare', priority: 15 },
   { pattern: 'NORTHWEST COMMUNITY', rawPattern: 'NORTHWEST COMMUNITY|NCH-MY CHART|NCH MYCHART', cleanPattern: 'Northwest Community Healthcare', matchField: 'dual', targetMerchant: 'Northwest Community Healthcare', targetCategory: 'Medical & Healthcare', priority: 15 },
   { pattern: 'CVS', rawPattern: 'CVS|CVS/PHARM', cleanPattern: 'CVS Pharmacy', matchField: 'dual', targetMerchant: 'CVS Pharmacy', targetCategory: 'Medical & Healthcare', priority: 20 },
   { pattern: 'WALGREENS', rawPattern: 'WALGREENS', cleanPattern: 'Walgreens', matchField: 'dual', targetMerchant: 'Walgreens', targetCategory: 'Medical & Healthcare', priority: 20 },
@@ -345,7 +343,7 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'GEICO', rawPattern: 'GEICO', cleanPattern: 'GEICO', matchField: 'dual', targetMerchant: 'GEICO', targetCategory: 'Transportation: Auto Insurance & Care', priority: 10 },
   { pattern: 'STATE FARM', rawPattern: 'STATE FARM', cleanPattern: 'State Farm', matchField: 'dual', targetMerchant: 'State Farm', targetCategory: 'Transportation: Auto Insurance & Care', priority: 10 },
   { pattern: 'PROGRESSIVE', rawPattern: 'PROGRESSIVE', cleanPattern: 'Progressive', matchField: 'dual', targetMerchant: 'Progressive', targetCategory: 'Transportation: Auto Insurance & Care', priority: 10 },
-  { pattern: 'HONDA FINANCIAL', rawPattern: 'HONDA FINANCIAL|AMERICAN HONDA', cleanPattern: 'American Honda Finance', matchField: 'dual', targetCategory: 'Debt Service: Vehicle Financing (Acura RDX)', priority: 10 },
+  { pattern: 'HONDA FINANCIAL', rawPattern: 'HONDA FINANCIAL|AMERICAN HONDA|TOYOTA FINANCIAL|FORD CREDIT|CHASE AUTO', cleanPattern: 'Vehicle Financing', matchField: 'dual', targetCategory: 'Debt Service: Vehicle Financing', priority: 10 },
 
   // 9. Housing
   { pattern: 'CHASE MORTGAGE', rawPattern: 'CHASE MORTGAGE|HOME LENDING', cleanPattern: 'Chase Mortgage', matchField: 'dual', targetCategory: 'Housing: Mortgage Principal & Interest', priority: 10 },
@@ -380,12 +378,11 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'OPENAI', rawPattern: 'OPENAI|CHATGPT', cleanPattern: 'OpenAI', matchField: 'dual', targetCategory: 'Technology: Software & Subscriptions', priority: 15 },
 
   // 12. Pets
-  { pattern: 'PETCO', rawPattern: 'PETCO', cleanPattern: 'Petco', matchField: 'dual', targetMerchant: 'Petco', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
-  { pattern: 'PETSMART', rawPattern: 'PETSMART', cleanPattern: 'PetSmart', matchField: 'dual', targetMerchant: 'PetSmart', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
-  { pattern: 'CHEWY', rawPattern: 'CHEWY|CHEWY\\.COM', cleanPattern: 'Chewy.com', matchField: 'dual', targetMerchant: 'Chewy.com', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
-  { pattern: 'GOLF ROSE', rawPattern: 'GOLF ROSE ANIMAL HOSPITAL', cleanPattern: 'Golf Rose Animal Hospital', matchField: 'dual', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
-  { pattern: 'YUPPIE PUPPIE', rawPattern: 'THE YUPPIE PUPPIE', cleanPattern: 'The Yuppie Puppie', matchField: 'dual', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
-  { pattern: 'COMB AND COLLAR', rawPattern: 'COMB & COLLAR|COMB AND COLLAR', cleanPattern: 'Comb & Collar Club', matchField: 'dual', targetCategory: 'Pets & Pet Care (Riley)', priority: 15 },
+  { pattern: 'PETCO', rawPattern: 'PETCO', cleanPattern: 'Petco', matchField: 'dual', targetMerchant: 'Petco', targetCategory: 'Pets & Pet Care', priority: 15 },
+  { pattern: 'PETSMART', rawPattern: 'PETSMART', cleanPattern: 'PetSmart', matchField: 'dual', targetMerchant: 'PetSmart', targetCategory: 'Pets & Pet Care', priority: 15 },
+  { pattern: 'CHEWY', rawPattern: 'CHEWY|CHEWY\\.COM', cleanPattern: 'Chewy.com', matchField: 'dual', targetMerchant: 'Chewy.com', targetCategory: 'Pets & Pet Care', priority: 15 },
+  { pattern: 'VET CLINIC', rawPattern: 'ANIMAL HOSPITAL|VETERINARY|VET CLINIC|VCA ANIMAL', cleanPattern: 'Veterinary Clinic', matchField: 'dual', targetCategory: 'Pets & Pet Care', priority: 15 },
+  { pattern: 'PET GROOMING', rawPattern: 'PET GROOMING|DOG GROOMING|PUPPY SPA|COMB & COLLAR', cleanPattern: 'Pet Grooming Club', matchField: 'dual', targetCategory: 'Pets & Pet Care', priority: 15 },
 
   // 13. Shopping: General, Clothing, Tech
   { pattern: 'AMAZON', rawPattern: 'AMAZON|AMZN', cleanPattern: 'Amazon', matchField: 'dual', targetMerchant: 'Amazon', targetCategory: 'Shopping: General Retail & Household', priority: 30 },
@@ -412,13 +409,12 @@ export const DEFAULT_RULES: Rule[] = [
   { pattern: 'CHASE AUTOPAY', rawPattern: 'AUTOMATIC PAYMENT - THANK YOU|CHASE CREDIT CRD AUTOPAY', cleanPattern: 'Chase Credit Card Payment', matchField: 'dual', targetMerchant: 'Chase Credit Card Payment', targetCategory: 'Transfer: Internal Liquidity', priority: 5 },
   { pattern: 'ATM WITHDRAWAL', rawPattern: 'ATM WITHDRAWAL|ATM CASH WITHDRAWAL|ATM FEE', cleanPattern: 'ATM Cash Withdrawal', matchField: 'dual', targetCategory: 'Transfer: Internal Liquidity', priority: 5 },
   { pattern: 'INTEREST PAID', rawPattern: '^INTEREST PAID|INTEREST PAYMENT', cleanPattern: 'Bank Interest', matchField: 'dual', targetMerchant: 'Bank Interest', targetCategory: 'Income: Interest & Passive', priority: 5 },
-  { pattern: 'LAURA PELECH', rawPattern: 'LAURA PELECH', cleanPattern: 'Laura Pelech', matchField: 'dual', targetMerchant: 'Laura Pelech', targetCategory: 'Transfer: Interspousal (Laura Pelech)', priority: 3 },
-  { pattern: 'PELECH FAMILY', rawPattern: 'NEIL J PELECH|KENNETH PELECH|MARK PELECH', matchField: 'dual', targetCategory: 'Transfer: Family Reimbursement', priority: 4 },
+  { pattern: 'INTERSPOUSAL TRANSFER', rawPattern: 'INTERSPOUSAL|SPOUSE TRANSFER|PARTNER TRANSFER', cleanPattern: 'Interspousal Transfer', matchField: 'dual', targetCategory: 'Transfer: Interspousal', priority: 3 },
+  { pattern: 'FAMILY REIMBURSEMENT', rawPattern: 'FAMILY REIMBURSEMENT|FAMILY TRANSFER|RELATIVE TRANSFER', matchField: 'dual', targetCategory: 'Transfer: Family Reimbursement', priority: 4 },
   { pattern: 'SCHWAB', rawPattern: 'SCHWAB BROKERAGE|CHARLES SCHWAB', cleanPattern: 'Charles Schwab Brokerage', matchField: 'dual', targetMerchant: 'Charles Schwab Brokerage', targetCategory: 'Investment: Brokerage & Capital Accumulation', priority: 5 },
 
   // 17. Income
-  { pattern: 'NORTHROP GRUMMAN', rawPattern: 'NORTHROP GRUMMAN|NG DIR DEP', cleanPattern: 'Northrop Grumman Direct Deposit', matchField: 'dual', targetMerchant: 'Northrop Grumman', targetCategory: 'Income: Payroll', priority: 5 },
-  { pattern: 'MCMASTER PAYROLL', rawPattern: 'MCMASTER.*PAYROLL|MCMASTER.*DIR DEP|McMaster-Carr Paystub', cleanPattern: 'McMaster-Carr Paystub Direct Deposit', matchField: 'dual', targetMerchant: 'McMaster-Carr Supply Company', targetCategory: 'Income: Payroll', priority: 5 },
+  { pattern: 'PAYROLL DIRECT DEPOSIT', rawPattern: 'DIR DEP|DIRECT DEPOSIT|PAYROLL|PAYSTUB|GUSTO|ADP|PAYCHEX', cleanPattern: 'Employer Direct Deposit', matchField: 'dual', targetCategory: 'Income: Payroll', priority: 5 },
 ];
 
 export function evaluateRule(
@@ -470,12 +466,12 @@ export function evaluateRule(
   const upper = `${rawText} ${cleanText}`.toUpperCase();
 
   // Interspousal
-  if (upper.includes('LAURA PELECH')) {
-    return { matched: true, category: 'Transfer: Interspousal (Laura Pelech)', confidence: 0.98 };
+  if (/(INTERSPOUSAL|SPOUSE|PARTNER TRANSFER)/i.test(upper)) {
+    return { matched: true, category: 'Transfer: Interspousal', confidence: 0.98 };
   }
 
   // Family reimbursement
-  if (/(NEIL J PELECH|KENNETH PELECH|MARK PELECH)/i.test(upper)) {
+  if (/(FAMILY REIMBURSEMENT|FAMILY TRANSFER|PARENTS TRANSFER|RELATIVE TRANSFER)/i.test(upper)) {
     return { matched: true, category: 'Transfer: Family Reimbursement', confidence: 0.98 };
   }
 

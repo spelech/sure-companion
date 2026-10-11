@@ -26,16 +26,16 @@ describe('RuleCategorizer', () => {
     expect(CANONICAL_CATEGORIES).toContain('Utilities: Internet & Cable');
     expect(CANONICAL_CATEGORIES).toContain('Utilities: Cell Phone');
     expect(CANONICAL_CATEGORIES).toContain('Utilities: Water & Waste');
-    expect(CANONICAL_CATEGORIES).toContain('Education & Childcare (Goddard School)');
+    expect(CANONICAL_CATEGORIES).toContain('Education & Childcare');
     expect(CANONICAL_CATEGORIES).toContain('Medical & Healthcare');
     expect(CANONICAL_CATEGORIES).toContain('Transportation: Gasoline & Fuel');
     expect(CANONICAL_CATEGORIES).toContain('Transportation: Tolls & Transit');
     expect(CANONICAL_CATEGORIES).toContain('Transportation: Auto Insurance & Care');
-    expect(CANONICAL_CATEGORIES).toContain('Debt Service: Vehicle Financing (Acura RDX)');
+    expect(CANONICAL_CATEGORIES).toContain('Debt Service: Vehicle Financing');
     expect(CANONICAL_CATEGORIES).toContain('Entertainment: Streaming & Media');
     expect(CANONICAL_CATEGORIES).toContain('Entertainment: Hobbies & Recreation');
     expect(CANONICAL_CATEGORIES).toContain('Technology: Software & Subscriptions');
-    expect(CANONICAL_CATEGORIES).toContain('Pets & Pet Care (Riley)');
+    expect(CANONICAL_CATEGORIES).toContain('Pets & Pet Care');
     expect(CANONICAL_CATEGORIES).toContain('Shopping: General Retail & Household');
     expect(CANONICAL_CATEGORIES).toContain('Shopping: Clothing & Apparel');
     expect(CANONICAL_CATEGORIES).toContain('Shopping: Electronics & Technology');
@@ -43,7 +43,7 @@ describe('RuleCategorizer', () => {
     expect(CANONICAL_CATEGORIES).toContain('Travel, Lodging & Vacation');
     expect(CANONICAL_CATEGORIES).toContain('Legal, Professional & Taxes');
     expect(CANONICAL_CATEGORIES).toContain('Transfer: Internal Liquidity');
-    expect(CANONICAL_CATEGORIES).toContain('Transfer: Interspousal (Laura Pelech)');
+    expect(CANONICAL_CATEGORIES).toContain('Transfer: Interspousal');
     expect(CANONICAL_CATEGORIES).toContain('Transfer: Family Reimbursement');
     expect(CANONICAL_CATEGORIES).toContain('Transfer: Peer-to-Peer & Personal Reimbursements');
     expect(CANONICAL_CATEGORIES).toContain('Investment: Brokerage & Capital Accumulation');
@@ -80,7 +80,7 @@ describe('RuleCategorizer', () => {
     expect(pizza?.categoryName).toBe('Dining Out: Restaurants & Takeout');
 
     const workMeal = await categorizer.categorize({
-      id: '5', date: '2026-10-04', amount: 8.75, rawName: 'ARAMARK NORTHROP CAFE', cleanName: 'Aramark Cafeteria', pending: false, excluded: false
+      id: '5', date: '2026-10-04', amount: 8.75, rawName: 'ARAMARK WORKPLACE CAFE', cleanName: 'Aramark Cafeteria', pending: false, excluded: false
     }, []);
     expect(workMeal?.categoryName).toBe('Dining Out: Workplace Meals');
   });
@@ -106,12 +106,12 @@ describe('RuleCategorizer', () => {
     const pet = await categorizer.categorize({
       id: '9', date: '2026-10-05', amount: 62.50, rawName: 'CHEWY.COM', cleanName: 'Chewy.com', pending: false, excluded: false
     }, []);
-    expect(pet?.categoryName).toBe('Pets & Pet Care (Riley)');
+    expect(pet?.categoryName).toBe('Pets & Pet Care');
 
     const daycare = await categorizer.categorize({
-      id: '10', date: '2026-10-06', amount: 450.00, rawName: 'THE GODDARD SCHOOL TUITION', cleanName: 'The Goddard School', pending: false, excluded: false
+      id: '10', date: '2026-10-06', amount: 450.00, rawName: 'KINDERCARE LEARNING CENTER TUITION', cleanName: 'Daycare & Preschool', pending: false, excluded: false
     }, []);
-    expect(daycare?.categoryName).toBe('Education & Childcare (Goddard School)');
+    expect(daycare?.categoryName).toBe('Education & Childcare');
 
     const health = await categorizer.categorize({
       id: '11', date: '2026-10-06', amount: 25.00, rawName: 'NORTHWEST COMMUNITY HEALTHCARE', cleanName: 'Northwest Community Healthcare', pending: false, excluded: false
@@ -131,12 +131,12 @@ describe('RuleCategorizer', () => {
     expect(ccPay?.categoryName).toBe('Transfer: Internal Liquidity');
 
     const interspousal = await categorizer.categorize({
-      id: '14', date: '2026-10-07', amount: 100.00, rawName: 'Zelle payment to LAURA PELECH', cleanName: 'Laura Pelech', pending: false, excluded: false
+      id: '14', date: '2026-10-07', amount: 100.00, rawName: 'Zelle payment - INTERSPOUSAL TRANSFER', cleanName: 'Interspousal Transfer', pending: false, excluded: false
     }, []);
-    expect(interspousal?.categoryName).toBe('Transfer: Interspousal (Laura Pelech)');
+    expect(interspousal?.categoryName).toBe('Transfer: Interspousal');
 
     const payroll = await categorizer.categorize({
-      id: '15', date: '2026-10-08', amount: -3200.00, rawName: 'NORTHROP GRUMMAN DIRECT DEP', cleanName: 'Northrop Grumman Direct Deposit', pending: false, excluded: false
+      id: '15', date: '2026-10-08', amount: -3200.00, rawName: 'PAYROLL DIRECT DEP - ACME CORP', cleanName: 'Employer Direct Deposit', pending: false, excluded: false
     }, []);
     expect(payroll?.categoryName).toBe('Income: Payroll');
   });

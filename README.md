@@ -118,6 +118,28 @@ Configuration can be set via environment variables or managed interactively via 
 
 ---
 
+---
+
+## 📚 Documentation Guides
+
+- [Rules & 39 Canonical Categories Taxonomy](docs/RULES_AND_TAXONOMY.md) — Comprehensive explanation of canonical categories, priority evaluation, and custom rule matching.
+- [Privacy-Bounded Receipt Matching Guide](docs/RECEIPTS_GUIDE.md) — Zero-inspection contract, query bounding, and Google OAuth setup.
+- [REST API Reference](docs/API_REFERENCE.md) — Full endpoint reference for configuration, health checks, testing, and sync execution.
+- [System Architecture & Design Specification](docs/DESIGN.md) — Detailed container topology, data flow, and error isolation architecture.
+
+---
+
+## 🔒 Privacy & Security Guarantees
+
+Sure Companion was built under strict security and privacy principles for community deployment:
+1. **Settled-Only Gate:** Skips pending holds (`pending === false`). No temporary authorization churn or restaurant tip discrepancies are tracked.
+2. **Financial-Only Receipt Matching:** Receipt search queries require both financial keywords (`receipt`, `invoice`, `order confirmation`, `bill`), exact dollar amount (`$X.XX`), and a tight date window ($\pm 3$ days). Never queries or reads personal correspondence.
+3. **Local SQLite State:** Idempotency tracking is maintained entirely on your local filesystem (`/config/companion_state.db`). Zero data is phoned home or shared externally.
+4. **Credential Masking:** All API tokens and OAuth secrets are masked when displayed in the dashboard or fetched via `/api/config`.
+5. **Non-Root Container:** The production Docker image runs as an unprivileged user (`node`, UID 1000) on minimal Alpine Linux.
+
+---
+
 ## 🛠️ Local Development
 
 ### Prerequisites

@@ -1,6 +1,6 @@
 # Sure Companion: Reusable Extension Modules for Sure
 
-**Author:** Steven T. Pelech  
+**Author:** Sure Community Contributors  
 **Date:** 2026-10-11  
 **Target Application:** Sure (Rails 8 / Hotwire personal finance system)  
 **Status:** Validated Design Spec  
@@ -10,7 +10,7 @@
 ## 1. Context & Motivation
 
 [Sure](https://github.com/we-promise/sure) is an open-source, self-hosted personal finance platform. While it provides bank sync aggregators (SimpleFIN, Plaid, Akahu), users encounter several challenges in real-world deployments:
-1. **Aggregator Noise & Reversion:** Bank sync feeds provide raw clearinghouse strings (e.g., `TST* ALPANA SCHAUMBURG IL`, `SQ *COMB & COLLAR`). If a user cleans a merchant name without locking it, subsequent aggregator syncs can revert the name.
+1. **Aggregator Noise & Reversion:** Bank sync feeds provide raw clearinghouse strings (e.g., `TST* LOCAL BISTRO - AUSTIN TX`, `SQ *COMB & COLLAR`). If a user cleans a merchant name without locking it, subsequent aggregator syncs can revert the name.
 2. **Category Inconsistency:** Aggregators and bank feeds assign hundreds of fragmented, overlapping categories.
 3. **Missing Receipt/Invoice Evidence:** Banking feeds supply only date and dollar amounts, requiring manual hunting in email inboxes for itemized receipts.
 4. **Varied Community Environments:** Members of the self-hosted Sure community have wildly varying access to external services:

@@ -25,9 +25,9 @@ const KNOWN_MERCHANT_RULES: KnownMerchantRule[] = [
   { pattern: /\bALLSTATE\b/i, cleanName: 'Allstate', websiteUrl: 'https://allstate.com' },
   { pattern: /\bPROGRESSIVE\b/i, cleanName: 'Progressive', websiteUrl: 'https://progressive.com' },
 
-  // Employers & Payroll
-  { pattern: /\bNORTHROP\s+GRUMMAN\b/i, cleanName: 'Northrop Grumman', websiteUrl: 'https://northropgrumman.com' },
-  { pattern: /\bMCMASTER(-|\s*)CARR\b/i, cleanName: 'McMaster-Carr Supply Company', websiteUrl: 'https://mcmaster.com' },
+  // Office & Business Supplies
+  { pattern: /\bSTAPLES\b/i, cleanName: 'Staples', websiteUrl: 'https://staples.com' },
+  { pattern: /\bOFFICE\s*DEPOT\b|\bOFFICEMAX\b/i, cleanName: 'Office Depot', websiteUrl: 'https://officedepot.com' },
 
   // Home & Hardware
   { pattern: /\bHOME\s*DEPOT\b/i, cleanName: 'The Home Depot', websiteUrl: 'https://homedepot.com' },
@@ -150,7 +150,7 @@ export function normalizeMerchant(rawDescription: string): NormalizedMerchant {
   cleaned = cleaned.replace(/\s+F\d{4,}\b/g, '');
   cleaned = cleaned.replace(/\s+\d{4,}\b/g, '');
 
-  // 6. Strip trailing location tokens (e.g. " - SCHAUMBURG", " - CHICAGO")
+  // 6. Strip trailing location tokens (e.g. " - AUSTIN", " - CHICAGO")
   cleaned = cleaned.replace(/\s*-\s*[A-Z\s]+$/i, '');
 
   // 7. Strip trailing state abbreviations (e.g. " IL", " WA", " CA")

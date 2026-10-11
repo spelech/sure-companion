@@ -678,7 +678,7 @@ git commit -m "feat(companion): implement interactive web setup dashboard"
 - [ ] **Step 1: Create multi-stage Dockerfile (builds UI + Node backend into Alpine image)**
 - [ ] **Step 2: Create sample `docker-compose.yml` demonstrating deployment alongside `sure_web`**
 - [ ] **Step 3: Build and test container locally**
-- [ ] **Step 4: Run dry-run sync against Steven's real Sure instance to test receipt matching on recent charges**
+- [ ] **Step 4: Run dry-run sync against a live Sure instance to test receipt matching on recent charges**
 - [ ] **Step 5: Commit**
 
 ```bash
