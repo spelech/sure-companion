@@ -16,6 +16,7 @@ export { SyncError, SyncReport };
 
 export interface PipelineOptions {
   days?: number;
+  selectiveReceiptMatching?: boolean;
 }
 
 export class PipelineOrchestrator {
@@ -38,6 +39,7 @@ export class PipelineOrchestrator {
     this.categorizer = categorizer;
     this.defaultOptions = {
       days: 14,
+      selectiveReceiptMatching: true,
       ...options
     };
   }
@@ -65,6 +67,7 @@ export class PipelineOrchestrator {
       skippedAlreadyProcessed: 0,
       processedSettled: 0,
       receiptsMatched: 0,
+      skippedReceiptTriage: 0,
       errors: []
     };
 
@@ -131,19 +134,25 @@ export class PipelineOrchestrator {
         // Step B: Categorization
         let categoryId = tx.categoryId;
         let categoryAssigned: string | null = null;
+        let isReceiptRelevant = true; // default: assume relevant unless triaged as false
         if (this.categorizer && typeof this.categorizer.categorize === 'function') {
           try {
             const decision: CategorizationDecision | null = await this.categorizer.categorize(
               { ...tx, cleanName },
               availableCategoryNames
             );
-            if (decision?.categoryName) {
-              categoryAssigned = decision.categoryName;
-              const matched = categories.find(
-                (c) => c.name.toLowerCase() === decision.categoryName.toLowerCase()
-              );
-              if (matched) {
-                categoryId = matched.id;
+            if (decision) {
+              if (decision.categoryName) {
+                categoryAssigned = decision.categoryName;
+                const matched = categories.find(
+                  (c) => c.name.toLowerCase() === decision.categoryName.toLowerCase()
+                );
+                if (matched) {
+                  categoryId = matched.id;
+                }
+              }
+              if (typeof decision.isReceiptRelevant === 'boolean') {
+                isReceiptRelevant = decision.isReceiptRelevant;
               }
             }
           } catch (cErr: any) {
@@ -154,9 +163,15 @@ export class PipelineOrchestrator {
           }
         }
 
-        // Step C: Receipt search & upload (fault tolerant)
+        // Step C: Receipt search & upload (fault tolerant with selective triage)
         let receiptStatus = 'none';
-        if (this.receiptAdapter && typeof this.receiptAdapter.findReceipt === 'function') {
+        const shouldSearchReceipt = !opts.selectiveReceiptMatching || isReceiptRelevant;
+
+        if (!shouldSearchReceipt) {
+          if (report.skippedReceiptTriage !== undefined) {
+            report.skippedReceiptTriage++;
+          }
+        } else if (this.receiptAdapter && typeof this.receiptAdapter.findReceipt === 'function') {
           try {
             const receipt = await this.receiptAdapter.findReceipt({ ...tx, cleanName });
             if (receipt) {

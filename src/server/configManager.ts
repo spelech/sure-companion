@@ -272,7 +272,8 @@ export class ConfigManager {
         },
         receipts: {
           provider: 'disabled',
-          lookbackDays: 3
+          lookbackDays: 3,
+          selectiveMatching: true
         },
         categorization: {
           provider: 'rules_only',

@@ -25,12 +25,20 @@ export interface LocalFolderConfig {
   path: string;
 }
 
+export interface ReceiptWranglerConfig {
+  baseUrl?: string;
+  apiToken?: string;
+  groupId?: number;
+}
+
 export interface ReceiptsConfig {
-  provider: 'gmail' | 'imap' | 'local_folder' | 'disabled';
+  provider: 'gmail' | 'imap' | 'local_folder' | 'receiptwrangler' | 'disabled';
   lookbackDays: number;
+  selectiveMatching?: boolean;
   gmail?: GmailConfig;
   imap?: ImapConfig;
   localFolder?: LocalFolderConfig;
+  receiptwrangler?: ReceiptWranglerConfig;
 }
 
 export interface CategorizationRule {
@@ -107,5 +115,14 @@ export interface TestReceiptResponse {
     orderUrl?: string;
     invoiceNumber?: string;
   } | null;
+  error?: string;
+}
+
+export interface TestCategorizationResponse {
+  success: boolean;
+  categoryName?: string;
+  confidence?: number;
+  isReceiptRelevant?: boolean;
+  reasoning?: string;
   error?: string;
 }

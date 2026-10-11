@@ -307,4 +307,46 @@ describe('PipelineOrchestrator', () => {
 
     expect(mockSure.fetchTransactions).toHaveBeenCalledWith(7);
   });
+
+  it('skips receipt search when selectiveReceiptMatching is true and isReceiptRelevant is false', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-gas', date: '2026-10-09', amount: 45.0, rawName: 'SHELL OIL PUMP', pending: false, excluded: false }
+    ]);
+    mockCategorizer.categorize.mockResolvedValue({
+      categoryName: 'Transportation: Gasoline & Fuel',
+      confidence: 0.95,
+      engine: 'rule',
+      isReceiptRelevant: false
+    });
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      selectiveReceiptMatching: true
+    });
+    const report = await orchestrator.runSync();
+
+    expect(report.processedSettled).toBe(1);
+    expect(report.skippedReceiptTriage).toBe(1);
+    expect(mockReceipt.findReceipt).not.toHaveBeenCalled();
+  });
+
+  it('searches for receipt when selectiveReceiptMatching is disabled even if isReceiptRelevant is false', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-coffee', date: '2026-10-09', amount: 4.5, rawName: 'STARBUCKS', pending: false, excluded: false }
+    ]);
+    mockCategorizer.categorize.mockResolvedValue({
+      categoryName: 'Dining Out: Fast Food & Coffee',
+      confidence: 0.95,
+      engine: 'rule',
+      isReceiptRelevant: false
+    });
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      selectiveReceiptMatching: false
+    });
+    const report = await orchestrator.runSync();
+
+    expect(report.processedSettled).toBe(1);
+    expect(report.skippedReceiptTriage).toBe(0);
+    expect(mockReceipt.findReceipt).toHaveBeenCalled();
+  });
 });

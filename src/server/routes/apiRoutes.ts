@@ -2,11 +2,14 @@ import { FastifyInstance, FastifyPluginOptions } from 'fastify';
 import { ConfigManager } from '../configManager';
 import { SureClient } from '../../services/sureClient';
 import { StateStore } from '../../services/stateStore';
-import { ReceiptAdapter, SettledTransaction, SyncReport } from '../../types';
+import { ReceiptAdapter, CategorizationAdapter, SettledTransaction, SyncReport } from '../../types';
 import { PipelineOrchestrator } from '../../services/pipelineOrchestrator';
 import { RuleCategorizer } from '../../adapters/categorization/ruleCategorizer';
+import { OpenAICategorizer } from '../../adapters/categorization/openaiCategorizer';
 import { NullReceiptAdapter } from '../../adapters/receipt/nullReceiptAdapter';
 import { GmailReceiptAdapter } from '../../adapters/receipt/gmailReceiptAdapter';
+import { LocalFolderReceiptAdapter } from '../../adapters/receipt/localFolderReceiptAdapter';
+import { ReceiptWranglerAdapter } from '../../adapters/receipt/receiptWranglerAdapter';
 
 export interface ApiRoutesOptions extends FastifyPluginOptions {
   configManager: ConfigManager;
@@ -58,6 +61,21 @@ export async function apiRoutes(
         lookbackDays: config.receipts.lookbackDays
       });
     }
+    if (config.receipts?.provider === 'local_folder') {
+      return new LocalFolderReceiptAdapter({
+        path: config.receipts.localFolder?.path,
+        lookbackDays: config.receipts.lookbackDays
+      });
+    }
+    if (config.receipts?.provider === 'receiptwrangler' && config.receipts?.receiptwrangler) {
+      const rw = config.receipts.receiptwrangler;
+      return new ReceiptWranglerAdapter({
+        baseUrl: rw.baseUrl,
+        apiToken: rw.apiToken,
+        groupId: rw.groupId,
+        lookbackDays: config.receipts.lookbackDays
+      });
+    }
     return new NullReceiptAdapter();
   };
 
@@ -78,14 +96,26 @@ export async function apiRoutes(
     const store = getStateStore();
     const adapter = getReceiptAdapter();
     const config = configManager.getConfig();
-    const mappedRules = (config.categorization?.rules || []).map((r) => ({
-      pattern: r.pattern,
-      targetCategory: r.category,
-      targetMerchant: r.cleanName
-    }));
-    const categorizer = new RuleCategorizer(mappedRules);
+
+    let categorizer: CategorizationAdapter;
+    if (config.categorization?.provider === 'openai' && config.categorization?.openai) {
+      categorizer = new OpenAICategorizer({
+        baseUrl: config.categorization.openai.baseUrl,
+        apiKey: config.categorization.openai.apiKey,
+        model: config.categorization.openai.model,
+      });
+    } else {
+      const mappedRules = (config.categorization?.rules || []).map((r) => ({
+        pattern: r.pattern,
+        targetCategory: r.category,
+        targetMerchant: r.cleanName
+      }));
+      categorizer = new RuleCategorizer(mappedRules);
+    }
+
     return new PipelineOrchestrator(client, store, adapter, categorizer, {
-      days: config.sync?.lookbackDays || 14
+      days: config.sync?.lookbackDays || 14,
+      selectiveReceiptMatching: config.receipts?.selectiveMatching ?? true,
     });
   };
 
@@ -176,6 +206,56 @@ export async function apiRoutes(
         success: true,
         matched: false,
         match: null
+      };
+    } catch (err: any) {
+      return reply.status(400).send({
+        success: false,
+        error: err?.message || String(err)
+      });
+    }
+  });
+
+  // POST /api/test/categorization: tests AI categorization and triage with sample transaction
+  fastify.post('/test/categorization', async (req, reply) => {
+    const body = (req.body as {
+      rawName?: string;
+      amount?: number;
+      date?: string;
+      availableCategories?: string[];
+      baseUrl?: string;
+      apiKey?: string;
+      model?: string;
+    }) || {};
+
+    const config = configManager.getConfig();
+    const categorizer = new OpenAICategorizer({
+      baseUrl: body.baseUrl || config.categorization?.openai?.baseUrl,
+      apiKey: body.apiKey || config.categorization?.openai?.apiKey,
+      model: body.model || config.categorization?.openai?.model,
+    });
+
+    const sampleTx: SettledTransaction = {
+      id: 'test-categorization-tx',
+      date: body.date || new Date().toISOString().split('T')[0],
+      amount: typeof body.amount === 'number' ? body.amount : 45.0,
+      rawName: body.rawName || 'AMAZON.COM*2K4L1M9 SEATTLE WA',
+      cleanName: 'Amazon',
+      pending: false,
+      excluded: false
+    };
+
+    const categories = body.availableCategories || [
+      'Groceries & Supermarket',
+      'Shopping: General Retail & Household',
+      'Utilities: Electric',
+      'Dining Out: Fast Food & Coffee'
+    ];
+
+    try {
+      const decision = await categorizer.categorize(sampleTx, categories);
+      return {
+        success: Boolean(decision),
+        decision,
       };
     } catch (err: any) {
       return reply.status(400).send({

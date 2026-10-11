@@ -12,7 +12,7 @@ export interface SettledTransaction {
 }
 
 export interface ReceiptMatch {
-  source: 'gmail' | 'imap' | 'local_folder';
+  source: 'gmail' | 'imap' | 'local_folder' | 'receiptwrangler';
   invoiceNumber?: string;
   orderUrl?: string;
   fileName: string;
@@ -24,8 +24,10 @@ export interface ReceiptMatch {
 export interface CategorizationDecision {
   categoryName: string;
   confidence: number;
-  engine: 'rule' | 'heuristic' | 'llm';
+  engine: 'rule' | 'heuristic' | 'llm' | 'openai' | 'ollama';
   notes?: string;
+  isReceiptRelevant?: boolean;
+  reasoning?: string;
 }
 
 export interface ReceiptAdapter {
@@ -72,6 +74,7 @@ export interface SyncReport {
   skippedAlreadyProcessed: number;
   processedSettled: number;
   receiptsMatched: number;
+  skippedReceiptTriage?: number;
   errors: SyncError[];
 }
 

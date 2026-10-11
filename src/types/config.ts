@@ -6,8 +6,9 @@ export const SureConfigSchema = z.object({
 });
 
 export const ReceiptsConfigSchema = z.object({
-  provider: z.enum(['gmail', 'imap', 'local_folder', 'disabled']).default('disabled'),
+  provider: z.enum(['gmail', 'imap', 'local_folder', 'receiptwrangler', 'disabled']).default('disabled'),
   lookbackDays: z.number().int().positive().default(3),
+  selectiveMatching: z.boolean().default(true),
   gmail: z.object({
     clientId: z.string().optional(),
     clientSecret: z.string().optional(),
@@ -27,6 +28,11 @@ export const ReceiptsConfigSchema = z.object({
   localFolder: z.object({
     path: z.string().default('/config/receipts_drop'),
   }).optional(),
+  receiptwrangler: z.object({
+    baseUrl: z.string().default('http://receiptwrangler:80'),
+    apiToken: z.string().optional(),
+    groupId: z.number().int().default(1),
+  }).optional(),
 });
 
 export const CategorizationRuleSchema = z.object({
@@ -45,7 +51,7 @@ export const CategorizationConfigSchema = z.object({
   openai: z.object({
     apiKey: z.string().optional(),
     model: z.string().default('gpt-4o-mini'),
-    baseUrl: z.string().optional(),
+    baseUrl: z.string().default('http://localhost:4000/v1'),
   }).optional(),
 });
 

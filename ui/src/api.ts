@@ -3,6 +3,7 @@ import {
   CompanionStatus,
   TestReceiptResponse,
   TestSureResponse,
+  TestCategorizationResponse,
   SyncReport
 } from './types';
 
@@ -87,6 +88,28 @@ export async function testReceipt(params: {
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
     throw new Error(data.error || `Receipt search test failed (${res.status})`);
+  }
+  return data;
+}
+
+export async function testCategorization(params: {
+  rawName?: string;
+  amount?: number;
+  date?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}): Promise<TestCategorizationResponse> {
+  const res = await fetch(`${BASE_URL}/api/test/categorization`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || `Categorization test failed (${res.status})`);
   }
   return data;
 }
