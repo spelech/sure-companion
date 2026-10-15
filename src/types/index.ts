@@ -1,11 +1,15 @@
 export interface SettledTransaction {
   id: string;
+  entryId?: string;
+  accountId?: string;
   date: string;
   amount: number;
   rawName: string;
   cleanName?: string;
   merchantId?: string;
   categoryId?: string;
+  notes?: string;
+  userModified?: boolean;
   pending: boolean;
   excluded: boolean;
   currency?: string;
@@ -51,6 +55,7 @@ export interface TransactionUpdate {
   date?: string;
   amount?: number;
   currency?: string;
+  excluded?: boolean;
   userModified?: boolean;
 }
 
@@ -72,8 +77,11 @@ export interface SyncReport {
   skippedPending: number;
   skippedExcluded: number;
   skippedAlreadyProcessed: number;
+  skippedCoolingPeriod?: number;
+  suppressedHolds?: number;
   processedSettled: number;
   receiptsMatched: number;
+  receiptsSyncedToWrangler?: number;
   skippedReceiptTriage?: number;
   errors: SyncError[];
 }

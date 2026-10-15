@@ -81,10 +81,13 @@ function inferReceiptRelevance(categoryName: string, rawText: string): boolean {
     return false;
   }
 
-  // Include categories typically generating invoices or purchase receipts
+  // Include categories typically generating invoices or purchase receipts (digital or paper)
   if (
     cat.includes('shopping') ||
     cat.includes('retail') ||
+    cat.includes('groceries') ||
+    cat.includes('restaurants') ||
+    cat.includes('medical') ||
     cat.includes('electronics') ||
     cat.includes('software') ||
     cat.includes('subscriptions') ||

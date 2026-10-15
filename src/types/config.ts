@@ -30,8 +30,10 @@ export const ReceiptsConfigSchema = z.object({
   }).optional(),
   receiptwrangler: z.object({
     baseUrl: z.string().default('http://receiptwrangler:80'),
+    publicUrl: z.string().default('https://receipts.wileyriley.com').optional(),
     apiToken: z.string().optional(),
     groupId: z.number().int().default(1),
+    autoSyncExternalReceipts: z.boolean().default(true).optional(),
   }).optional(),
 });
 
@@ -59,13 +61,14 @@ export const SyncConfigSchema = z.object({
   enabled: z.boolean().default(true),
   intervalMinutes: z.number().int().positive().default(60),
   lookbackDays: z.number().int().positive().default(14),
+  settlementDelayDays: z.number().int().min(0).default(5),
 });
 
 export const CompanionConfigSchema = z.object({
   sure: SureConfigSchema,
   receipts: ReceiptsConfigSchema.default({ provider: 'disabled' }),
   categorization: CategorizationConfigSchema.default({ provider: 'rules_only', rules: [] }),
-  sync: SyncConfigSchema.default({ enabled: true, intervalMinutes: 60, lookbackDays: 14 }),
+  sync: SyncConfigSchema.default({ enabled: true, intervalMinutes: 60, lookbackDays: 14, settlementDelayDays: 5 }),
 });
 
 export type SureConfig = z.infer<typeof SureConfigSchema>;

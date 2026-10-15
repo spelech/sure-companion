@@ -71,9 +71,11 @@ export async function apiRoutes(
       const rw = config.receipts.receiptwrangler;
       return new ReceiptWranglerAdapter({
         baseUrl: rw.baseUrl,
+        publicUrl: rw.publicUrl,
         apiToken: rw.apiToken,
         groupId: rw.groupId,
-        lookbackDays: config.receipts.lookbackDays
+        lookbackDays: config.receipts.lookbackDays,
+        autoSyncExternalReceipts: rw.autoSyncExternalReceipts
       });
     }
     return new NullReceiptAdapter();
@@ -113,9 +115,24 @@ export async function apiRoutes(
       categorizer = new RuleCategorizer(mappedRules);
     }
 
+    let rwLinker: ReceiptWranglerAdapter | null = null;
+    if (config.receipts?.receiptwrangler?.baseUrl || config.receipts?.receiptwrangler?.apiToken) {
+      const rw = config.receipts.receiptwrangler;
+      rwLinker = new ReceiptWranglerAdapter({
+        baseUrl: rw.baseUrl,
+        publicUrl: rw.publicUrl,
+        apiToken: rw.apiToken,
+        groupId: rw.groupId,
+        lookbackDays: config.receipts.lookbackDays,
+        autoSyncExternalReceipts: rw.autoSyncExternalReceipts
+      });
+    }
+
     return new PipelineOrchestrator(client, store, adapter, categorizer, {
       days: config.sync?.lookbackDays || 14,
       selectiveReceiptMatching: config.receipts?.selectiveMatching ?? true,
+      settlementDelayDays: config.sync?.settlementDelayDays ?? 5,
+      receiptWranglerLinker: rwLinker
     });
   };
 
@@ -131,7 +148,7 @@ export async function apiRoutes(
       if (!body || typeof body !== 'object') {
         return reply.status(400).send({ error: 'Request body must be a JSON object' });
       }
-      const updated = await configManager.updateConfig(body);
+      await configManager.updateConfig(body);
       return configManager.getSanitizedConfig();
     } catch (err: any) {
       return reply.status(400).send({
@@ -146,7 +163,6 @@ export async function apiRoutes(
   fastify.post('/test/sure', async (req, reply) => {
     const body = (req.body as { baseUrl?: string; apiToken?: string }) || {};
     const config = configManager.getConfig();
-    const baseUrl = body.baseUrl || config.sure?.baseUrl;
     const apiToken = body.apiToken || config.sure?.apiToken;
 
     if (!apiToken) {
@@ -266,10 +282,22 @@ export async function apiRoutes(
   });
 
   // POST /api/sync/run: triggers an immediate pipeline sync run
+  // Supports optional body: { ignoreSettlementDelay?: boolean, days?: number }
   fastify.post('/sync/run', async (req, reply) => {
     try {
+      const body = (req.body as { ignoreSettlementDelay?: boolean; days?: number } | undefined) || {};
       const orchestrator = getOrchestrator();
-      const report = await orchestrator.runSync();
+      const syncOpts: Record<string, any> = {};
+      if (typeof body.ignoreSettlementDelay === 'boolean') {
+        syncOpts.ignoreSettlementDelay = body.ignoreSettlementDelay;
+      }
+      if (typeof body.days === 'number' && body.days > 0) {
+        syncOpts.days = body.days;
+      }
+      const report =
+        Object.keys(syncOpts).length > 0
+          ? await orchestrator.runSync(syncOpts)
+          : await orchestrator.runSync();
       appContext.latestReport = report;
       appContext.lastSyncTime = new Date().toISOString();
       return {
@@ -296,7 +324,8 @@ export async function apiRoutes(
       latestReport: appContext.latestReport || null,
       lastSyncTime: appContext.lastSyncTime || null,
       stats,
-      provider: config.receipts?.provider || 'disabled'
+      provider: config.receipts?.provider || 'disabled',
+      settlementDelayDays: config.sync?.settlementDelayDays ?? 5
     };
   });
 }

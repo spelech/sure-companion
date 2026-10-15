@@ -54,12 +54,15 @@ describe('Domain Types', () => {
         rules: [],
       },
       sync: {
+        enabled: true,
         intervalMinutes: 60,
         lookbackDays: 14,
+        settlementDelayDays: 5,
       },
     };
     expect(config.sure.baseUrl).toBe('http://sure_web:3000');
     expect(config.sync.intervalMinutes).toBe(60);
+    expect(config.sync.settlementDelayDays).toBe(5);
   });
 
   it('validates a default CompanionConfig with Zod schema', () => {
@@ -85,6 +88,7 @@ describe('Domain Types', () => {
       const config: CompanionConfig = parsed.data;
       expect(config.receipts.lookbackDays).toBe(3);
       expect(config.sync.lookbackDays).toBe(14);
+      expect(config.sync.settlementDelayDays).toBe(5);
     }
   });
 });

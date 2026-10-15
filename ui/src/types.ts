@@ -27,8 +27,10 @@ export interface LocalFolderConfig {
 
 export interface ReceiptWranglerConfig {
   baseUrl?: string;
+  publicUrl?: string;
   apiToken?: string;
   groupId?: number;
+  autoSyncExternalReceipts?: boolean;
 }
 
 export interface ReceiptsConfig {
@@ -66,8 +68,10 @@ export interface CategorizationConfig {
 }
 
 export interface SyncConfig {
+  enabled?: boolean;
   intervalMinutes: number;
   lookbackDays: number;
+  settlementDelayDays?: number;
 }
 
 export interface CompanionConfig {
@@ -82,9 +86,12 @@ export interface SyncReport {
   skippedPending: number;
   skippedExcluded: number;
   skippedAlreadyProcessed: number;
+  skippedCoolingPeriod?: number;
+  suppressedHolds?: number;
   processedSettled: number;
   receiptsMatched: number;
-  errors: string[];
+  receiptsSyncedToWrangler?: number;
+  errors: Array<string | { transactionId?: string; error: string }>;
 }
 
 export interface CompanionStatus {
@@ -95,6 +102,7 @@ export interface CompanionStatus {
     pendingRetriesCount: number;
   };
   provider: string;
+  settlementDelayDays?: number;
 }
 
 export interface TestSureResponse {
