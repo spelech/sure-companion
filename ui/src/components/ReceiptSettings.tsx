@@ -51,6 +51,16 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
     receipts.localFolder?.path || '/config/receipts_drop'
   );
 
+  // Selective matching toggle
+  const [selectiveMatching, setSelectiveMatching] = useState<boolean>(
+    receipts.selectiveMatching ?? true
+  );
+
+  // Receipt Wrangler fields
+  const [rwBaseUrl, setRwBaseUrl] = useState(receipts.receiptwrangler?.baseUrl || 'http://receiptwrangler:8080');
+  const [rwApiToken, setRwApiToken] = useState(receipts.receiptwrangler?.apiToken || '');
+  const [rwGroupId, setRwGroupId] = useState<number>(receipts.receiptwrangler?.groupId ?? 1);
+
   // Save states
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
@@ -70,6 +80,7 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
     try {
       const updatedReceipts: ReceiptsConfig = {
         provider,
+        selectiveMatching,
         lookbackDays: Number(lookbackDays) || 3,
         gmail: {
           credentialsPath: gmailCredentialsPath || undefined,
@@ -89,6 +100,11 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
         },
         localFolder: {
           path: localFolderPath || '/config/receipts_drop'
+        },
+        receiptwrangler: {
+          baseUrl: rwBaseUrl || 'http://receiptwrangler:8080',
+          apiToken: rwApiToken || '',
+          groupId: Number(rwGroupId) || 1
         }
       };
 
@@ -154,12 +170,13 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
           <label className="block text-sm font-medium text-slate-300 mb-2">
             Receipt Ingestion Adapter
           </label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
             {[
               { id: 'disabled', label: 'Disabled', icon: PowerOff },
               { id: 'gmail', label: 'Gmail API', icon: Mail },
               { id: 'imap', label: 'IMAP Mailbox', icon: Mail },
-              { id: 'local_folder', label: 'Local Folder', icon: FolderDown }
+              { id: 'local_folder', label: 'Local Folder', icon: FolderDown },
+              { id: 'receiptwrangler', label: 'Receipt Wrangler', icon: Receipt }
             ].map((p) => {
               const Icon = p.icon;
               const isSelected = provider === p.id;
@@ -180,6 +197,28 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
               );
             })}
           </div>
+        </div>
+
+        {/* Selective Matching Toggle */}
+        <div className="p-4 bg-slate-900/70 border border-slate-700/80 rounded-lg flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <label htmlFor="selectiveMatching" className="text-sm font-medium text-slate-200 cursor-pointer">
+              Intelligent Receipt Relevance Triage
+            </label>
+            <p className="text-xs text-slate-400">
+              When enabled, AI categorization or rules determine if a transaction typically generates a digital receipt (e.g. retail, travel, dining, hardware). Skips queries for gas pumps, cash withdrawals, interest, and account transfers.
+            </p>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer mt-1 flex-shrink-0">
+            <input
+              type="checkbox"
+              id="selectiveMatching"
+              checked={selectiveMatching}
+              onChange={(e) => setSelectiveMatching(e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+          </label>
         </div>
 
         {/* Lookback Days */}
@@ -341,6 +380,52 @@ export const ReceiptSettings: React.FC<Props> = ({ config, onSave }) => {
               <p className="text-xs text-slate-400 mt-1">
                 Mounted directory inside container where PDFs or images are deposited.
               </p>
+            </div>
+          </div>
+        )}
+
+        {provider === 'receiptwrangler' && (
+          <div className="p-4 bg-slate-900/70 border border-slate-700/80 rounded-lg space-y-4">
+            <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wider flex items-center gap-2">
+              <Receipt className="w-4 h-4" /> Receipt Wrangler API
+            </h3>
+            <div>
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Receipt Wrangler Base URL
+              </label>
+              <input
+                type="text"
+                value={rwBaseUrl}
+                onChange={(e) => setRwBaseUrl(e.target.value)}
+                placeholder="http://receiptwrangler:8080"
+                className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 text-sm"
+              />
+              <p className="text-xs text-slate-400 mt-1">
+                Host URL of your Receipt Wrangler server (e.g. http://receiptwrangler:8080 or http://localhost:8080).
+              </p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">API Token / User JWT</label>
+                <input
+                  type="password"
+                  value={rwApiToken}
+                  onChange={(e) => setRwApiToken(e.target.value)}
+                  placeholder="Bearer token or API key"
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-slate-300 mb-1">Group ID</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={rwGroupId}
+                  onChange={(e) => setRwGroupId(parseInt(e.target.value, 10) || 1)}
+                  placeholder="1"
+                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded text-slate-100 text-sm"
+                />
+              </div>
             </div>
           </div>
         )}

@@ -3,6 +3,7 @@ import {
   CompanionStatus,
   TestReceiptResponse,
   TestSureResponse,
+  TestCategorizationResponse,
   SyncReport
 } from './types';
 
@@ -43,9 +44,17 @@ export async function fetchStatus(): Promise<CompanionStatus> {
   return res.json();
 }
 
-export async function runSync(): Promise<{ success: boolean; report: SyncReport }> {
+export async function runSync(options?: {
+  ignoreSettlementDelay?: boolean;
+}): Promise<{ success: boolean; report: SyncReport }> {
   const res = await fetch(`${BASE_URL}/api/sync/run`, {
-    method: 'POST'
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      ignoreSettlementDelay: options?.ignoreSettlementDelay ?? false
+    })
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
@@ -87,6 +96,28 @@ export async function testReceipt(params: {
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.success) {
     throw new Error(data.error || `Receipt search test failed (${res.status})`);
+  }
+  return data;
+}
+
+export async function testCategorization(params: {
+  rawName?: string;
+  amount?: number;
+  date?: string;
+  baseUrl?: string;
+  apiKey?: string;
+  model?: string;
+}): Promise<TestCategorizationResponse> {
+  const res = await fetch(`${BASE_URL}/api/test/categorization`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(params)
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data.success) {
+    throw new Error(data.error || `Categorization test failed (${res.status})`);
   }
   return data;
 }

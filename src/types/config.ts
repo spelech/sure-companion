@@ -6,8 +6,9 @@ export const SureConfigSchema = z.object({
 });
 
 export const ReceiptsConfigSchema = z.object({
-  provider: z.enum(['gmail', 'imap', 'local_folder', 'disabled']).default('disabled'),
+  provider: z.enum(['gmail', 'imap', 'local_folder', 'receiptwrangler', 'disabled']).default('disabled'),
   lookbackDays: z.number().int().positive().default(3),
+  selectiveMatching: z.boolean().default(true),
   gmail: z.object({
     clientId: z.string().optional(),
     clientSecret: z.string().optional(),
@@ -27,6 +28,13 @@ export const ReceiptsConfigSchema = z.object({
   localFolder: z.object({
     path: z.string().default('/config/receipts_drop'),
   }).optional(),
+  receiptwrangler: z.object({
+    baseUrl: z.string().default('http://receiptwrangler:80'),
+    publicUrl: z.string().default('https://receipts.wileyriley.com').optional(),
+    apiToken: z.string().optional(),
+    groupId: z.number().int().default(1),
+    autoSyncExternalReceipts: z.boolean().default(true).optional(),
+  }).optional(),
 });
 
 export const CategorizationRuleSchema = z.object({
@@ -45,7 +53,7 @@ export const CategorizationConfigSchema = z.object({
   openai: z.object({
     apiKey: z.string().optional(),
     model: z.string().default('gpt-4o-mini'),
-    baseUrl: z.string().optional(),
+    baseUrl: z.string().default('http://localhost:4000/v1'),
   }).optional(),
 });
 
@@ -53,13 +61,14 @@ export const SyncConfigSchema = z.object({
   enabled: z.boolean().default(true),
   intervalMinutes: z.number().int().positive().default(60),
   lookbackDays: z.number().int().positive().default(14),
+  settlementDelayDays: z.number().int().min(0).default(5),
 });
 
 export const CompanionConfigSchema = z.object({
   sure: SureConfigSchema,
   receipts: ReceiptsConfigSchema.default({ provider: 'disabled' }),
   categorization: CategorizationConfigSchema.default({ provider: 'rules_only', rules: [] }),
-  sync: SyncConfigSchema.default({ enabled: true, intervalMinutes: 60, lookbackDays: 14 }),
+  sync: SyncConfigSchema.default({ enabled: true, intervalMinutes: 60, lookbackDays: 14, settlementDelayDays: 5 }),
 });
 
 export type SureConfig = z.infer<typeof SureConfigSchema>;

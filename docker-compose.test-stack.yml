@@ -1,0 +1,83 @@
+services:
+  # --------------------------------------------------------------------------
+  # Receipt Wrangler Test Stack
+  # --------------------------------------------------------------------------
+  receiptwrangler-db:
+    image: mariadb:10
+    container_name: rw_test_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: receiptwrangler
+      MYSQL_USER: receiptwrangler
+      MYSQL_PASSWORD: receiptwrangler_pass
+    volumes:
+      - rw-db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "receiptwrangler", "-preceiptwrangler_pass"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  receiptwrangler-redis:
+    image: redis:alpine
+    container_name: rw_test_redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - rw-redis-data:/data
+
+  receiptwrangler:
+    image: noah231515/receipt-wrangler:latest
+    container_name: rw_test_app
+    restart: unless-stopped
+    depends_on:
+      receiptwrangler-db:
+        condition: service_healthy
+      receiptwrangler-redis:
+        condition: service_started
+    ports:
+      - "8480:80"
+    environment:
+      - DB_ENGINE=mariadb
+      - DB_HOST=receiptwrangler-db
+      - DB_PORT=3306
+      - DB_USER=receiptwrangler
+      - DB_PASSWORD=receiptwrangler_pass
+      - DB_NAME=receiptwrangler
+      - REDIS_HOST=receiptwrangler-redis
+      - REDIS_PORT=6379
+    volumes:
+      - rw-app-data:/app/receipt-wrangler-api/data
+
+  # --------------------------------------------------------------------------
+  # Sure Companion (Under Test)
+  # --------------------------------------------------------------------------
+  sure-companion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sure_companion_test
+    restart: unless-stopped
+    ports:
+      - "8045:8045"
+    environment:
+      - PORT=8045
+      - SURE_BASE_URL=http://host.docker.internal:8406
+      - SURE_API_TOKEN=test-api-token
+      # Receipt Wrangler integration
+      - RECEIPTS_PROVIDER=receiptwrangler
+      - RECEIPTWRANGLER_BASE_URL=http://receiptwrangler:80
+      - RECEIPTWRANGLER_API_TOKEN=your_rw_api_key
+      # OpenAI / LiteLLM / JEV Router triage integration
+      - CATEGORIZATION_PROVIDER=openai
+      - OPENAI_BASE_URL=http://host.docker.internal:4000/v1
+      - OPENAI_MODEL=jev-router
+      - OPENAI_API_KEY=sk-test
+    depends_on:
+      - receiptwrangler
+
+volumes:
+  rw-db-data:
+  rw-redis-data:
+  rw-app-data:
