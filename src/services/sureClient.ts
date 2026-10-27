@@ -11,8 +11,13 @@ export class SureClient {
 
   private async request<T = any>(endpoint: string, options: RequestInit = {}): Promise<T> {
     const url = `${this.baseUrl}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+    const isHexApiKey = /^[0-9a-f]{64}$/i.test(this.token) || this.token.startsWith('demo_monitoring_key_');
+    const authHeaders: Record<string, string> = isHexApiKey
+      ? { 'X-Api-Key': this.token }
+      : { Authorization: `Bearer ${this.token}`, 'X-Api-Key': this.token };
+
     const headers: Record<string, string> = {
-      Authorization: `Bearer ${this.token}`,
+      ...authHeaders,
       ...(options.headers as Record<string, string>)
     };
 
@@ -102,8 +107,10 @@ export class SureClient {
 
       const excluded = Boolean(raw.excluded || raw.is_excluded || raw.status === 'excluded');
       const currency = raw.currency || 'USD';
+      const accountId = raw.account_id || raw.accountId || raw.account?.id || undefined;
+      const notes = raw.notes || undefined;
 
-      return {
+      const mapped: SettledTransaction = {
         id: raw.id,
         date: raw.date,
         amount,
@@ -115,6 +122,13 @@ export class SureClient {
         excluded,
         currency
       };
+      if (accountId) mapped.accountId = accountId;
+      if (notes) mapped.notes = notes;
+      if (raw.user_modified === true || raw.userModified === true) {
+        mapped.userModified = true;
+      }
+
+      return mapped;
     });
   }
 
@@ -199,6 +213,7 @@ export class SureClient {
     if (updates.date !== undefined) transaction.date = updates.date;
     if (updates.amount !== undefined) transaction.amount = updates.amount;
     if (updates.currency !== undefined) transaction.currency = updates.currency;
+    if (updates.excluded !== undefined) transaction.excluded = updates.excluded;
 
     // Critical: user_modified must be set to true to prevent aggregator sync reversions
     transaction.user_modified = updates.userModified ?? true;

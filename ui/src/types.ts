@@ -25,12 +25,22 @@ export interface LocalFolderConfig {
   path: string;
 }
 
+export interface ReceiptWranglerConfig {
+  baseUrl?: string;
+  publicUrl?: string;
+  apiToken?: string;
+  groupId?: number;
+  autoSyncExternalReceipts?: boolean;
+}
+
 export interface ReceiptsConfig {
-  provider: 'gmail' | 'imap' | 'local_folder' | 'disabled';
+  provider: 'gmail' | 'imap' | 'local_folder' | 'receiptwrangler' | 'disabled';
   lookbackDays: number;
+  selectiveMatching?: boolean;
   gmail?: GmailConfig;
   imap?: ImapConfig;
   localFolder?: LocalFolderConfig;
+  receiptwrangler?: ReceiptWranglerConfig;
 }
 
 export interface CategorizationRule {
@@ -58,8 +68,10 @@ export interface CategorizationConfig {
 }
 
 export interface SyncConfig {
+  enabled?: boolean;
   intervalMinutes: number;
   lookbackDays: number;
+  settlementDelayDays?: number;
 }
 
 export interface CompanionConfig {
@@ -74,9 +86,12 @@ export interface SyncReport {
   skippedPending: number;
   skippedExcluded: number;
   skippedAlreadyProcessed: number;
+  skippedCoolingPeriod?: number;
+  suppressedHolds?: number;
   processedSettled: number;
   receiptsMatched: number;
-  errors: string[];
+  receiptsSyncedToWrangler?: number;
+  errors: Array<string | { transactionId?: string; error: string }>;
 }
 
 export interface CompanionStatus {
@@ -87,6 +102,7 @@ export interface CompanionStatus {
     pendingRetriesCount: number;
   };
   provider: string;
+  settlementDelayDays?: number;
 }
 
 export interface TestSureResponse {
@@ -107,5 +123,14 @@ export interface TestReceiptResponse {
     orderUrl?: string;
     invoiceNumber?: string;
   } | null;
+  error?: string;
+}
+
+export interface TestCategorizationResponse {
+  success: boolean;
+  categoryName?: string;
+  confidence?: number;
+  isReceiptRelevant?: boolean;
+  reasoning?: string;
   error?: string;
 }

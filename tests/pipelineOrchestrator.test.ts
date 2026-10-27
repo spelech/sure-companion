@@ -307,4 +307,137 @@ describe('PipelineOrchestrator', () => {
 
     expect(mockSure.fetchTransactions).toHaveBeenCalledWith(7);
   });
+
+  it('skips receipt search when selectiveReceiptMatching is true and isReceiptRelevant is false', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-gas', date: '2026-10-09', amount: 45.0, rawName: 'SHELL OIL PUMP', pending: false, excluded: false }
+    ]);
+    mockCategorizer.categorize.mockResolvedValue({
+      categoryName: 'Transportation: Gasoline & Fuel',
+      confidence: 0.95,
+      engine: 'rule',
+      isReceiptRelevant: false
+    });
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      selectiveReceiptMatching: true
+    });
+    const report = await orchestrator.runSync();
+
+    expect(report.processedSettled).toBe(1);
+    expect(report.skippedReceiptTriage).toBe(1);
+    expect(mockReceipt.findReceipt).not.toHaveBeenCalled();
+  });
+
+  it('searches for receipt when selectiveReceiptMatching is disabled even if isReceiptRelevant is false', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-coffee', date: '2026-10-09', amount: 4.5, rawName: 'STARBUCKS', pending: false, excluded: false }
+    ]);
+    mockCategorizer.categorize.mockResolvedValue({
+      categoryName: 'Dining Out: Fast Food & Coffee',
+      confidence: 0.95,
+      engine: 'rule',
+      isReceiptRelevant: false
+    });
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      selectiveReceiptMatching: false
+    });
+    const report = await orchestrator.runSync();
+
+    expect(report.processedSettled).toBe(1);
+    expect(report.skippedReceiptTriage).toBe(0);
+    expect(mockReceipt.findReceipt).toHaveBeenCalled();
+  });
+
+  it('skips recent settled transactions inside settlementDelayDays cooling window and processes matured ones', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-recent', date: '2026-10-13', amount: 32.0, rawName: 'Target', pending: false, excluded: false },
+      { id: 'tx-matured', date: '2026-10-08', amount: 85.0, rawName: 'Amazon', pending: false, excluded: false }
+    ]);
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      settlementDelayDays: 5,
+      referenceDate: '2026-10-15T12:00:00Z'
+    });
+    const report = await orchestrator.runSync();
+
+    expect(report.totalFetched).toBe(2);
+    expect(report.skippedCoolingPeriod).toBe(1);
+    expect(report.processedSettled).toBe(1);
+    expect(mockSure.updateTransaction).toHaveBeenCalledWith('tx-matured', expect.any(Object));
+    expect(mockSure.updateTransaction).not.toHaveBeenCalledWith('tx-recent', expect.any(Object));
+  });
+
+  it('processes recent settled transactions immediately when ignoreSettlementDelay is true (Sync Now Override)', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-recent', date: '2026-10-14', amount: 32.0, rawName: 'Target', pending: false, excluded: false }
+    ]);
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer, {
+      settlementDelayDays: 5,
+      referenceDate: '2026-10-15T12:00:00Z'
+    });
+    const report = await orchestrator.runSync({ ignoreSettlementDelay: true });
+
+    expect(report.skippedCoolingPeriod).toBe(0);
+    expect(report.processedSettled).toBe(1);
+    expect(mockSure.updateTransaction).toHaveBeenCalledWith('tx-recent', expect.any(Object));
+  });
+
+  it('auto-suppresses superseded pre-tip authorization holds when settled post-tip charge is present', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-hold', date: '2026-10-05', amount: 100.0, rawName: 'LOU MALNATIS PIZZERIA', pending: false, excluded: false },
+      { id: 'tx-settled-tip', date: '2026-10-06', amount: 120.0, rawName: 'LOU MALNATIS PIZZERIA', pending: false, excluded: false }
+    ]);
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer);
+    const report = await orchestrator.runSync();
+
+    expect(report.suppressedHolds).toBe(1);
+    expect(report.skippedExcluded).toBe(1);
+    expect(report.processedSettled).toBe(1);
+    expect(mockSure.updateTransaction).toHaveBeenCalledWith(
+      'tx-hold',
+      expect.objectContaining({
+        excluded: true,
+        userModified: true
+      })
+    );
+    expect(mockSure.updateTransaction).toHaveBeenCalledWith(
+      'tx-settled-tip',
+      expect.objectContaining({
+        userModified: true
+      })
+    );
+  });
+
+  it('appends Receipt Wrangler deep link to transaction notes and marks RW receipt resolved', async () => {
+    mockSure.fetchTransactions.mockResolvedValue([
+      { id: 'tx-rw', date: '2026-10-05', amount: 67.5, rawName: 'Home Depot', pending: false, excluded: false }
+    ]);
+    mockReceipt.findReceipt.mockResolvedValue({
+      source: 'receiptwrangler',
+      invoiceNumber: '42',
+      orderUrl: 'https://receipts.wileyriley.com/receipts/42',
+      fileName: 'hd_42.pdf',
+      mimeType: 'application/pdf',
+      fileBuffer: Buffer.from('PDF_DATA'),
+      receivedAt: '2026-10-05T12:00:00Z'
+    });
+    mockReceipt.markReceiptResolved = vi.fn().mockResolvedValue(true);
+
+    const orchestrator = new PipelineOrchestrator(mockSure, mockStore, mockReceipt, mockCategorizer);
+    const report = await orchestrator.runSync();
+
+    expect(report.receiptsMatched).toBe(1);
+    expect(mockReceipt.markReceiptResolved).toHaveBeenCalledWith('42', 'tx-rw');
+    expect(mockSure.updateTransaction).toHaveBeenCalledWith(
+      'tx-rw',
+      expect.objectContaining({
+        notes: 'Receipt Wrangler: https://receipts.wileyriley.com/receipts/42',
+        userModified: true
+      })
+    );
+  });
 });

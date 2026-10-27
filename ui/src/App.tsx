@@ -84,10 +84,10 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleSync = async () => {
+  const handleSync = async (ignoreSettlementDelay = false) => {
     setIsSyncing(true);
     try {
-      const result = await runSync();
+      const result = await runSync({ ignoreSettlementDelay });
       const updatedStatus = await fetchStatus().catch(() => null);
       if (updatedStatus) {
         setStatus(updatedStatus);
@@ -99,8 +99,9 @@ export const App: React.FC = () => {
           provider: prev?.provider || 'disabled'
         }));
       }
+      const modeLabel = ignoreSettlementDelay ? 'Immediate Override Sync' : 'Scheduled Sync';
       showToast(
-        `Sync completed: ${result.report.processedSettled} settled processed, ${result.report.receiptsMatched} receipts attached.`
+        `${modeLabel} completed: ${result.report.processedSettled} settled processed, ${result.report.receiptsMatched} receipts attached (${result.report.skippedCoolingPeriod ?? 0} in cooling window).`
       );
     } catch (err: any) {
       showToast(`Sync failed: ${err.message}`, 'error');
@@ -190,7 +191,7 @@ export const App: React.FC = () => {
                 <h1 className="text-base font-bold text-white tracking-tight flex items-center gap-2">
                   Sure Companion
                   <span className="text-xs px-2 py-0.5 rounded bg-slate-800 text-emerald-400 border border-slate-700 font-mono">
-                    v0.1.0
+                    v0.2.0
                   </span>
                 </h1>
                 <p className="text-xs text-slate-400">Microservice Pipeline & Setup</p>
@@ -240,9 +241,11 @@ export const App: React.FC = () => {
             {activeTab === 'activity' && (
               <ActivityLog
                 status={status}
+                config={config}
                 isSyncing={isSyncing}
                 onSync={handleSync}
                 onRefresh={handleRefresh}
+                onSaveConfig={handleSave}
               />
             )}
 

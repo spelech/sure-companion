@@ -59,6 +59,9 @@ export class ConfigManager {
     if (raw.receipts?.imap?.auth?.pass) {
       raw.receipts.imap.auth.pass = maskSecret(raw.receipts.imap.auth.pass);
     }
+    if (raw.receipts?.receiptwrangler?.apiToken) {
+      raw.receipts.receiptwrangler.apiToken = maskSecret(raw.receipts.receiptwrangler.apiToken);
+    }
     if (raw.categorization?.openai?.apiKey) {
       raw.categorization.openai.apiKey = maskSecret(raw.categorization.openai.apiKey);
     }
@@ -103,11 +106,22 @@ export class ConfigManager {
       ...(Object.keys(mergedReceiptsImapAuth).length > 0 ? { auth: mergedReceiptsImapAuth } : {})
     };
 
+    const mergedReceiptsWrangler = {
+      ...(current.receipts?.receiptwrangler || {}),
+      ...(updates.receipts?.receiptwrangler || {})
+    };
+    if (isMasked(updates.receipts?.receiptwrangler?.apiToken)) {
+      mergedReceiptsWrangler.apiToken = current.receipts?.receiptwrangler?.apiToken;
+    }
+
     const mergedReceipts = {
       ...current.receipts,
       ...(updates.receipts || {}),
       ...(current.receipts?.gmail || updates.receipts?.gmail ? { gmail: mergedReceiptsGmail } : {}),
-      ...(current.receipts?.imap || updates.receipts?.imap ? { imap: mergedReceiptsImap } : {})
+      ...(current.receipts?.imap || updates.receipts?.imap ? { imap: mergedReceiptsImap } : {}),
+      ...(current.receipts?.receiptwrangler || updates.receipts?.receiptwrangler
+        ? { receiptwrangler: mergedReceiptsWrangler }
+        : {})
     };
 
     const mergedCategorizationOpenai = {
@@ -162,6 +176,8 @@ export class ConfigManager {
       }
     }
 
+    const delayEnv = process.env.SYNC_SETTLEMENT_DELAY_DAYS ?? process.env.SETTLEMENT_DELAY_DAYS;
+
     // Merge env variables
     const envConfig: any = {
       sure: {
@@ -189,6 +205,14 @@ export class ConfigManager {
         },
         localFolder: {
           path: process.env.LOCAL_FOLDER_PATH
+        },
+        receiptwrangler: {
+          baseUrl: process.env.RECEIPTWRANGLER_BASE_URL,
+          publicUrl: process.env.RECEIPTWRANGLER_PUBLIC_URL,
+          apiToken: process.env.RECEIPTWRANGLER_API_TOKEN,
+          groupId: process.env.RECEIPTWRANGLER_GROUP_ID
+            ? parseInt(process.env.RECEIPTWRANGLER_GROUP_ID, 10)
+            : undefined
         }
       },
       categorization: {
@@ -210,6 +234,9 @@ export class ConfigManager {
           : undefined,
         lookbackDays: process.env.SYNC_LOOKBACK_DAYS
           ? parseInt(process.env.SYNC_LOOKBACK_DAYS, 10)
+          : undefined,
+        settlementDelayDays: delayEnv !== undefined
+          ? parseInt(delayEnv, 10)
           : undefined
       }
     };
@@ -243,18 +270,42 @@ export class ConfigManager {
         provider: 'disabled',
         lookbackDays: 3,
         ...(fileConfig.receipts || {}),
-        ...(cleanedEnv.receipts || {})
+        ...(cleanedEnv.receipts || {}),
+        ...(fileConfig.receipts?.gmail || cleanedEnv.receipts?.gmail
+          ? { gmail: { ...(fileConfig.receipts?.gmail || {}), ...(cleanedEnv.receipts?.gmail || {}) } }
+          : {}),
+        ...(fileConfig.receipts?.imap || cleanedEnv.receipts?.imap
+          ? { imap: { ...(fileConfig.receipts?.imap || {}), ...(cleanedEnv.receipts?.imap || {}) } }
+          : {}),
+        ...(fileConfig.receipts?.localFolder || cleanedEnv.receipts?.localFolder
+          ? { localFolder: { ...(fileConfig.receipts?.localFolder || {}), ...(cleanedEnv.receipts?.localFolder || {}) } }
+          : {}),
+        ...(fileConfig.receipts?.receiptwrangler || cleanedEnv.receipts?.receiptwrangler
+          ? {
+              receiptwrangler: {
+                ...(fileConfig.receipts?.receiptwrangler || {}),
+                ...(cleanedEnv.receipts?.receiptwrangler || {})
+              }
+            }
+          : {})
       },
       categorization: {
         provider: 'rules_only',
         rules: [],
         ...(fileConfig.categorization || {}),
-        ...(cleanedEnv.categorization || {})
+        ...(cleanedEnv.categorization || {}),
+        ...(fileConfig.categorization?.ollama || cleanedEnv.receipts?.ollama
+          ? { ollama: { ...(fileConfig.categorization?.ollama || {}), ...(cleanedEnv.categorization?.ollama || {}) } }
+          : {}),
+        ...(fileConfig.categorization?.openai || cleanedEnv.categorization?.openai
+          ? { openai: { ...(fileConfig.categorization?.openai || {}), ...(cleanedEnv.categorization?.openai || {}) } }
+          : {})
       },
       sync: {
         enabled: true,
         intervalMinutes: 60,
         lookbackDays: 14,
+        settlementDelayDays: 5,
         ...(fileConfig.sync || {}),
         ...(cleanedEnv.sync || {})
       }
@@ -272,7 +323,8 @@ export class ConfigManager {
         },
         receipts: {
           provider: 'disabled',
-          lookbackDays: 3
+          lookbackDays: 3,
+          selectiveMatching: true
         },
         categorization: {
           provider: 'rules_only',
@@ -281,7 +333,8 @@ export class ConfigManager {
         sync: {
           enabled: true,
           intervalMinutes: 60,
-          lookbackDays: 14
+          lookbackDays: 14,
+          settlementDelayDays: 5
         }
       };
     }
