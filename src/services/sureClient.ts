@@ -158,8 +158,30 @@ export class SureClient {
    * Retrieves existing categories from Sure.
    */
   async fetchCategories(): Promise<Category[]> {
-    const data = await this.request('/api/v1/categories', { method: 'GET' });
-    const rawList: any[] = Array.isArray(data) ? data : (data?.categories || []);
+    const rawList: any[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const endpoint = page === 1 ? '/api/v1/categories' : `/api/v1/categories?page=${page}`;
+      const data = await this.request(endpoint, { method: 'GET' });
+      if (Array.isArray(data)) {
+        rawList.push(...data);
+        break;
+      }
+
+      const pageItems: any[] = data?.categories || [];
+      rawList.push(...pageItems);
+
+      const reportedTotalPages = Number(data?.pagination?.total_pages);
+      if (Number.isFinite(reportedTotalPages) && reportedTotalPages > totalPages) {
+        totalPages = reportedTotalPages;
+      }
+      if (pageItems.length === 0) {
+        break;
+      }
+      page++;
+    } while (page <= totalPages && page <= 50);
 
     return rawList.map((c): Category => ({
       id: c.id,

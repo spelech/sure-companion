@@ -215,6 +215,36 @@ describe('SureClient', () => {
         { id: 'cat-2', name: 'Groceries & Supermarket', color: '#22c55e', icon: 'shopping-cart' }
       ]);
     });
+
+    it('paginates across multiple pages when pagination.total_pages > 1', async () => {
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            categories: [{ id: 'cat-1', name: 'Debt Service', color: '#000' }],
+            pagination: { page: 1, per_page: 25, total_count: 26, total_pages: 2 }
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            categories: [{ id: 'cat-26', name: 'Utilities: Electric', color: '#eab308' }],
+            pagination: { page: 2, per_page: 25, total_count: 26, total_pages: 2 }
+          })
+        });
+      global.fetch = fetchMock;
+
+      const client = new SureClient('http://localhost:3000', 'mock-token');
+      const categories = await client.fetchCategories();
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        'http://localhost:3000/api/v1/categories?page=2',
+        expect.objectContaining({ method: 'GET' })
+      );
+      expect(categories.map((c) => c.id)).toEqual(['cat-1', 'cat-26']);
+    });
   });
 
   describe('findOrCreateFamilyMerchant', () => {
