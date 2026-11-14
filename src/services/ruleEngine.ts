@@ -451,11 +451,23 @@ export function evaluateRule(
     }
 
     if (isMatch) {
+      const canonical = canonicalizeCategory(rule.targetCategory);
+      const rawTarget = (rule.targetCategory || '').trim();
+      const lowerTarget = rawTarget.toLowerCase();
+      const preservedCategory =
+        canonical === 'General & Miscellaneous' &&
+        rawTarget &&
+        lowerTarget !== 'general & miscellaneous' &&
+        lowerTarget !== 'unknown' &&
+        lowerTarget !== 'uncategorized'
+          ? rawTarget
+          : canonical;
+
       return {
         matched: true,
         ruleId: rule.id,
         vendor: rule.targetMerchant,
-        category: canonicalizeCategory(rule.targetCategory),
+        category: preservedCategory,
         tags: rule.targetTags || [],
         confidence: 1.0,
       };

@@ -87,9 +87,18 @@ const KNOWN_MERCHANT_RULES: KnownMerchantRule[] = [
   { pattern: /\bPETSMART\b/i, cleanName: 'PetSmart', websiteUrl: 'https://petsmart.com' },
   { pattern: /\bCHEWY(\.COM)?\b/i, cleanName: 'Chewy.com', websiteUrl: 'https://chewy.com' },
 
+  // Workplace, Childcare & Municipal
+  { pattern: /\bARAMARK\b/i, cleanName: 'Aramark Cafeteria' },
+  { pattern: /\bMCMASTER(-CARR)?\b/i, cleanName: 'McMaster-Carr', websiteUrl: 'https://mcmaster.com' },
+  { pattern: /\b(THE\s+)?GODDARD\s+SCHO(OL)?\b/i, cleanName: 'The Goddard School' },
+  { pattern: /\bVILLAGE\s+OF\s+SCHAU(MBURG)?\b/i, cleanName: 'Village of Schaumburg' },
+  { pattern: /\bSIMPLEFIN\b/i, cleanName: 'SimpleFIN Bridge' },
+  { pattern: /\bOPENROUTER\b/i, cleanName: 'OpenRouter', websiteUrl: 'https://openrouter.ai' },
+  { pattern: /\bGOOGLE\s*(\*|TVDEV|MONET)/i, cleanName: 'Google Play / Developer', websiteUrl: 'https://play.google.com' },
+
   // Financial Services & Payments
   { pattern: /\bPAYPAL\b/i, cleanName: 'PayPal', websiteUrl: 'https://paypal.com' },
-  { pattern: /\bCHASE\s+CREDIT\s+CRD\b/i, cleanName: 'Chase Credit Card', websiteUrl: 'https://chase.com' },
+  { pattern: /\bCHASE\s+CREDIT\s+C(A)?RD\b/i, cleanName: 'Chase Credit Card', websiteUrl: 'https://chase.com' },
 ];
 
 function toTitleCase(str: string): string {
@@ -150,8 +159,8 @@ export function normalizeMerchant(rawDescription: string): NormalizedMerchant {
   cleaned = cleaned.replace(/\s+F\d{4,}\b/g, '');
   cleaned = cleaned.replace(/\s+\d{4,}\b/g, '');
 
-  // 6. Strip trailing location tokens (e.g. " - AUSTIN", " - CHICAGO")
-  cleaned = cleaned.replace(/\s*-\s*[A-Z\s]+$/i, '');
+  // 6. Strip trailing location tokens (e.g. " - AUSTIN", " - CHICAGO") without breaking hyphenated names
+  cleaned = cleaned.replace(/\s+-\s+[A-Z\s]+$/i, '');
 
   // 7. Strip trailing state abbreviations (e.g. " IL", " WA", " CA")
   cleaned = cleaned.replace(/\s+[A-Z]{2}\s*$/i, '');

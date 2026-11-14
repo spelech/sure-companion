@@ -66,14 +66,36 @@ export class SureClient {
    * and maps them to SettledTransaction.
    */
   async fetchTransactions(days: number = 14): Promise<SettledTransaction[]> {
-    let endpoint = '/api/v1/transactions?per_page=100';
+    let baseEndpoint = '/api/v1/transactions?per_page=100';
     if (days > 0) {
       const startDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      endpoint += `&start_date=${startDate}`;
+      baseEndpoint += `&start_date=${startDate}`;
     }
 
-    const data = await this.request(endpoint, { method: 'GET' });
-    const rawList: any[] = Array.isArray(data) ? data : (data?.transactions || []);
+    const rawList: any[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const endpoint = page === 1 ? baseEndpoint : `${baseEndpoint}&page=${page}`;
+      const data = await this.request(endpoint, { method: 'GET' });
+      if (Array.isArray(data)) {
+        rawList.push(...data);
+        break;
+      }
+
+      const pageItems: any[] = data?.transactions || [];
+      rawList.push(...pageItems);
+
+      const reportedTotalPages = Number(data?.pagination?.total_pages);
+      if (Number.isFinite(reportedTotalPages) && reportedTotalPages > totalPages) {
+        totalPages = reportedTotalPages;
+      }
+      if (pageItems.length === 0) {
+        break;
+      }
+      page++;
+    } while (page <= totalPages && page <= 50);
 
     return rawList.map((raw): SettledTransaction => {
       let amount = 0;
@@ -136,8 +158,30 @@ export class SureClient {
    * Retrieves existing categories from Sure.
    */
   async fetchCategories(): Promise<Category[]> {
-    const data = await this.request('/api/v1/categories', { method: 'GET' });
-    const rawList: any[] = Array.isArray(data) ? data : (data?.categories || []);
+    const rawList: any[] = [];
+    let page = 1;
+    let totalPages = 1;
+
+    do {
+      const endpoint = page === 1 ? '/api/v1/categories' : `/api/v1/categories?page=${page}`;
+      const data = await this.request(endpoint, { method: 'GET' });
+      if (Array.isArray(data)) {
+        rawList.push(...data);
+        break;
+      }
+
+      const pageItems: any[] = data?.categories || [];
+      rawList.push(...pageItems);
+
+      const reportedTotalPages = Number(data?.pagination?.total_pages);
+      if (Number.isFinite(reportedTotalPages) && reportedTotalPages > totalPages) {
+        totalPages = reportedTotalPages;
+      }
+      if (pageItems.length === 0) {
+        break;
+      }
+      page++;
+    } while (page <= totalPages && page <= 50);
 
     return rawList.map((c): Category => ({
       id: c.id,
