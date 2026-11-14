@@ -110,7 +110,8 @@ export async function apiRoutes(
       const mappedRules = (config.categorization?.rules || []).map((r) => ({
         pattern: r.pattern,
         targetCategory: r.category,
-        targetMerchant: r.cleanName
+        targetMerchant: r.cleanName,
+        priority: 1
       }));
       categorizer = new RuleCategorizer(mappedRules);
     }

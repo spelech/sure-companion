@@ -36,9 +36,10 @@ export class RuleCategorizer implements CategorizationAdapter {
 
     // If availableCategories constraint is provided, ensure resolvedCategory is valid within it
     if (availableCategories.length > 0) {
-      const exactMatch = availableCategories.find(
-        (c) => c.toLowerCase() === resolvedCategory.toLowerCase()
-      );
+      const lowerResolved = resolvedCategory.toLowerCase();
+      const exactMatch =
+        availableCategories.find((c) => c.toLowerCase() === lowerResolved) ??
+        availableCategories.find((c) => c.toLowerCase().startsWith(`${lowerResolved} (`));
       if (!exactMatch) {
         return null;
       }

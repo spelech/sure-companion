@@ -188,5 +188,21 @@ describe('RuleCategorizer', () => {
       id: '19', date: '2026-10-09', amount: 100.00, rawName: 'COMED ELECTRIC', cleanName: 'ComEd', pending: false, excluded: false
     }, ['Housing: Rent & Temporary Housing']);
     expect(noMatch).toBeNull();
+
+    // Matches customized Sure category names with parenthesized suffixes
+    const suffixed = await categorizer.categorize({
+      id: '20', date: '2026-10-09', amount: 62.50, rawName: 'CHEWY.COM', cleanName: 'Chewy.com', pending: false, excluded: false
+    }, ['Pets & Pet Care (Riley)']);
+    expect(suffixed?.categoryName).toBe('Pets & Pet Care (Riley)');
+  });
+
+  it('preserves custom targetCategory names with priority 1 overrides', async () => {
+    const customCategorizer = new RuleCategorizer([
+      { pattern: 'CHEWY', targetCategory: 'Pets & Pet Care (Riley)', targetMerchant: 'Chewy.com', priority: 1 }
+    ]);
+    const match = await customCategorizer.categorize({
+      id: '21', date: '2026-10-09', amount: 50.00, rawName: 'CHEWY.COM', cleanName: 'Chewy.com', pending: false, excluded: false
+    }, ['Pets & Pet Care (Riley)', 'Shopping: General Retail & Household']);
+    expect(match?.categoryName).toBe('Pets & Pet Care (Riley)');
   });
 });
