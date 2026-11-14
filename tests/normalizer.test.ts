@@ -52,6 +52,9 @@ describe('normalizeMerchant', () => {
     expect(normalizeMerchant('SQ *AWESOME COFFEE SHOP').cleanName).toBe('Awesome Coffee Shop');
     expect(normalizeMerchant('TST* ROASTED BONE - CHICAGO').cleanName).toBe('Roasted Bone');
     expect(normalizeMerchant('CHECKCARD 1234 RANDOM HARDWARE STORE #99').cleanName).toBe('Random Hardware Store');
+    expect(normalizeMerchant('McMaster-Carr - MCMASTER-CARR').cleanName).toBe('McMaster-Carr');
+    expect(normalizeMerchant('McMaster-Carr - ARAMARK MCMASTER CARR').cleanName).toBe('Aramark Cafeteria');
+    expect(normalizeMerchant('THE GODDARD SCHO').cleanName).toBe('The Goddard School');
   });
 
   it('handles empty or blank inputs cleanly', () => {

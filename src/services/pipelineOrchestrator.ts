@@ -59,7 +59,7 @@ export class PipelineOrchestrator {
     transactions: SettledTransaction[],
     report: SyncReport
   ): Promise<void> {
-    const NON_TIP_RETAIL_PATTERNS = /amazon|amzn|target|walmart|costco|meijer|jewel|aldi|whole foods|mariano|apple|google|netflix|spotify|hulu|disney|chewy|best buy|home depot|menards|lowes|comed|nicor|xfinity|comcast|verizon|at&t/i;
+    const NON_TIP_RETAIL_PATTERNS = /amazon|amzn|target|walmart|costco|meijer|jewel|aldi|whole foods|mariano|apple|google|netflix|spotify|hulu|disney|chewy|best buy|home depot|menards|lowes|comed|nicor|xfinity|comcast|verizon|at&t|mcmaster|aramark|sodexo|canteen|goddard|chase|openrouter|simplefin|primark|tj\s*maxx|oxfam|village of|mortgage|pgim|weitz|matured|ally|park chicago|united center|cloud\s*wise|cloud\s*9/i;
 
     const candidates = transactions.filter((t) => !t.pending && !t.excluded && t.amount > 0);
     for (const holdTx of candidates) {
