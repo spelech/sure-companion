@@ -146,6 +146,40 @@ describe('SureClient', () => {
       expect(transactions[0].id).toBe('tx-direct');
       expect(transactions[0].pending).toBe(false);
     });
+
+    it('paginates across multiple pages when pagination.total_pages > 1', async () => {
+      const fetchMock = vi.fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            transactions: [
+              { id: 'tx-p1', date: '2026-11-10', amount: 12.5, name: 'Page 1 Store', pending: false, excluded: false }
+            ],
+            pagination: { page: 1, per_page: 100, total_count: 2, total_pages: 2 }
+          })
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({
+            transactions: [
+              { id: 'tx-p2', date: '2026-10-20', amount: 25.0, name: 'Page 2 Store', pending: false, excluded: false }
+            ],
+            pagination: { page: 2, per_page: 100, total_count: 2, total_pages: 2 }
+          })
+        });
+      global.fetch = fetchMock;
+
+      const client = new SureClient('http://localhost:3000', 'mock-token');
+      const transactions = await client.fetchTransactions(45);
+
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(fetchMock).toHaveBeenNthCalledWith(
+        2,
+        expect.stringContaining('&page=2'),
+        expect.objectContaining({ method: 'GET' })
+      );
+      expect(transactions.map((t) => t.id)).toEqual(['tx-p1', 'tx-p2']);
+    });
   });
 
   describe('fetchCategories', () => {
